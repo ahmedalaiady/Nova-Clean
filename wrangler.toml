@@ -1,0 +1,8 @@
+name = "novaclean"
+pages_build_output_dir = "."
+compatibility_date = "2024-08-06"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "novaclean-db"
+database_id = "023eed1f-e613-4406-8229-ac39800e7e39"
