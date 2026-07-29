@@ -34,6 +34,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('floatingWa').href = `${waBaseUrl}?text=${encodeURIComponent('مرحباً، أرغب بالاستفسار عن منتجات نوفا كلين')}`;
 
+  /* ---------- تتبع Snapchat Pixel: حدث التواصل عبر واتساب ---------- */
+  function trackWhatsAppContact() {
+    if (typeof snaptr === 'function') {
+      snaptr('track', 'SIGN_UP', { sign_up_method: 'whatsapp' });
+    }
+  }
+  document.getElementById('floatingWa').addEventListener('click', trackWhatsAppContact);
+  document.getElementById('waLink').addEventListener('click', trackWhatsAppContact);
+
+  function extractNumericPrice(priceStr) {
+    if (!priceStr) return undefined;
+    const digits = String(priceStr).replace(/[^\d]/g, '');
+    return digits ? Number(digits) : undefined;
+  }
+
   /* ---------- نافذة الطلب المنبثقة (Modal) ---------- */
   const modal = document.getElementById('orderModal');
   const modalOfferName = document.getElementById('modalOfferName');
@@ -158,6 +173,16 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       if (!response.ok) throw new Error('فشل إرسال الطلب');
+
+      // تتبع Snapchat Pixel: حدث إرسال نموذج الطلب بنجاح
+      if (typeof snaptr === 'function') {
+        snaptr('track', 'PURCHASE', {
+          currency: 'IQD',
+          price: extractNumericPrice(offerPrice),
+          item_ids: [offerName],
+          description: offerName
+        });
+      }
 
       const messageText = `مرحباً، أرغب بتأكيد طلبي:\nالاسم: ${fullName}\nالهاتف: ${phone}\nالمحافظة: ${governorate}\nالمنطقة: ${address}\nالعرض: ${offerName} (${offerPrice})`;
       document.getElementById('waLink').href = `${waBaseUrl}?text=${encodeURIComponent(messageText)}`;
