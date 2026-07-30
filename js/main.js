@@ -49,6 +49,24 @@ document.addEventListener('DOMContentLoaded', function () {
     return digits ? Number(digits) : undefined;
   }
 
+  /* ---------- تحويل الأرقام العربية/الفارسية إلى أرقام إنجليزية ----------
+     بعض لوحات المفاتيح العربية (خصوصاً iOS) تُدخل أرقاماً هندية-عربية
+     (٠١٢٣٤٥٦٧٨٩) أو فارسية ممتدة (۰۱۲۳۴۵۶۷۸۹) بدلاً من الأرقام اللاتينية،
+     مما يمنع نجاح تحقق رقم الهاتف. نعالج هذا بتحويل كل الأرقام إلى صيغة
+     إنجليزية قبل أي تحقق أو استخدام. */
+  function normalizeDigits(input) {
+    if (!input) return input;
+    const arabicIndic = '٠١٢٣٤٥٦٧٨٩';   // U+0660 - U+0669
+    const extendedArabicIndic = '۰۱۲۳۴۵۶۷۸۹'; // U+06F0 - U+06F9 (Persian)
+    return String(input).replace(/[٠-٩۰-۹]/g, function (ch) {
+      let idx = arabicIndic.indexOf(ch);
+      if (idx > -1) return String(idx);
+      idx = extendedArabicIndic.indexOf(ch);
+      if (idx > -1) return String(idx);
+      return ch;
+    });
+  }
+
   /* ---------- نافذة الطلب المنبثقة (Modal) ---------- */
   const modal = document.getElementById('orderModal');
   const modalOfferName = document.getElementById('modalOfferName');
@@ -108,7 +126,13 @@ document.addEventListener('DOMContentLoaded', function () {
   function validateForm() {
     let isValid = true;
     const fullName = document.getElementById('full_name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
+    const phoneField = document.getElementById('phone');
+    const phone = normalizeDigits(phoneField.value.trim());
+    // نعيد كتابة القيمة في الحقل بالأرقام الإنجليزية بعد التطبيع
+    // حتى يرى المستخدم رقمه بصيغة صحيحة ويُستخدم بشكل متسق لاحقاً
+    if (phoneField.value.trim() !== phone) {
+      phoneField.value = phone;
+    }
     const governorate = document.getElementById('governorate').value;
     const address = document.getElementById('address').value.trim();
 
@@ -149,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري إرسال الطلب...';
 
     const fullName = document.getElementById('full_name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
+    const phone = normalizeDigits(document.getElementById('phone').value.trim());
     const governorate = document.getElementById('governorate').value;
     const address = document.getElementById('address').value.trim();
     const offerName = offerSelectedInput.value;
